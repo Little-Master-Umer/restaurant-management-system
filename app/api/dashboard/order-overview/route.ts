@@ -10,8 +10,8 @@ export async function GET(req:NextRequest){
     const endDate=new Date();
     startDate.setDate(endDate.getDate()-days+1);
     const grouped: Record<string, {
-        date: string;
-        totalOrders: number;
+        day: string;
+        totalorders: number;
         pending: number;
         delivered: number;
         cancelled: number;
@@ -31,18 +31,19 @@ export async function GET(req:NextRequest){
             },          
         });
 
+        //console.log(orders);
         for (const order of orders){
             const dateKey=order.createdAt.toISOString().split("T")[0];
             if (!grouped[dateKey]){
                 grouped[dateKey]={
-                    date:dateKey,
-                    totalOrders: 0,
+                    day:dateKey,
+                    totalorders: 0,
                     pending: 0,
                     delivered: 0,
                     cancelled: 0,
                 }
             }
-            grouped[dateKey].totalOrders++;
+            grouped[dateKey].totalorders++;
             switch (order.status) {
                 case "PENDING":
                     grouped[dateKey].pending++;
@@ -58,21 +59,24 @@ export async function GET(req:NextRequest){
             }
 
         }  
+        const data = Object.values(grouped);
+
         
         return NextResponse.json(
             {
-                success:"true",
-                grouped,
+                success:true,
+                data,
                 message:""
             },{
                 status:200,
             }
         );
     } catch (error) {
+        const data = Object.values(grouped);
         return NextResponse.json(
             {
-                success:"false",
-                grouped,
+                success:false,
+                data,
                 message:"Internal Server Error"
             },{
                 status:404,

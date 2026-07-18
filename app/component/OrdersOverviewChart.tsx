@@ -29,44 +29,65 @@ const LEGEND = [
   { label: "Cancelled", color: "#a3a9b3" },
 ];
 
+export type OrderOverview={
+  day:string,
+  totalorders:number,
+  pending:number,
+  delivered:number,
+  cancelled:number,
+}
+
+
+
 export default function OrdersOverviewChart() {
-
-  const [stats, getStats]=useState({
+  const [stats, setStats]=useState<OrderOverview[]>([]);
+  const [globalError,setGlobalError]=useState("");
+    async function getOver(){
+        try {
+          const body= await fetch("/api/dashboard/order-overview");
+          const res = await body.json();
+        
+          console.log("Grouped:", res);
+          if (!res.success){
+            setGlobalError(res.message??"Something Went Wrong!");
+            return;
+          }
+          if (res.success){
+            setStats(res.data);
+          }
+          console.log(res.data);
+        } catch (error) {
+          setGlobalError("error happenend");
+          
+        }
+        
+      }
     
-  });
-
-
-  async function getOver(){
-    const [stats, getStats]=useState("");
-
-    const body= await fetch("api/dashboard/order-overview");
-    const res= body.json();
-    if (!res.success){
-
-    }
-
-
-
     
 
+    useEffect(()=>{
+        getOver();
 
+        const interval=setInterval(getOver,5000);
+        return()=>clearInterval(interval);
 
+    },[]);
 
-
-  }
+    
+  
 
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-[16px] font-bold text-gray-900">Orders Overview</h2>
-        <button
+        {/* <button
           type="button"
           className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-[12.5px] font-medium text-gray-600"
         >
           This Week
           <ChevronDown size={14} />
-        </button>
+        </button> */}
       </div>
 
       <div className="mb-4 flex flex-wrap gap-5">
@@ -83,7 +104,7 @@ export default function OrdersOverviewChart() {
 
       <div className="h-[280px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={DATA} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+          <LineChart data={stats} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid vertical={false} stroke="#f1f1f1" />
             <XAxis
               dataKey="day"
@@ -92,8 +113,8 @@ export default function OrdersOverviewChart() {
               tick={{ fontSize: 12, fill: "#9ca3af" }}
             />
             <YAxis
-              domain={[0, 120]}
-              ticks={[0, 30, 60, 90, 120]}
+              // domain={[0, 120]}
+              // ticks={[0, 30, 60, 90, 120]}
               tickLine={false}
               axisLine={false}
               tick={{ fontSize: 12, fill: "#9ca3af" }}
@@ -107,7 +128,7 @@ export default function OrdersOverviewChart() {
             />
             <Line
               type="monotone"
-              dataKey="total"
+              dataKey="totalorders"
               stroke="#e15b5b"
               strokeWidth={2.5}
               dot={{ r: 4, fill: "#e15b5b", strokeWidth: 0 }}
