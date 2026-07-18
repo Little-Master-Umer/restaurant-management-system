@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  role      UserRole @default(ADMIN)
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+model Food {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  price       Decimal      @db.Decimal(10, 2)
+  image       String?
+  category    FoodCategory
+  isAvailable Boolean      @default(true)
+  createdAt   DateTime     @default(now())@db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @db.Timestamptz(6)
+  orderItems  OrderItem[]
+
+  @@map("food")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  customerName String
+  phone        String
+  address      String
+  total        Decimal     @db.Decimal(10, 2)
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+
+  updatedAt    DateTime    @updatedAt @db.Timestamptz(6)
+  items        OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id       String  @id @default(cuid())
+  orderId  String
+  foodId   String
+  quantity Int
+  price    Decimal @db.Decimal(10, 2)
+  food     Food    @relation(fields: [foodId], references: [id])
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARATION
+  DELIVERED
+  CANCELLED
+}
+
+enum FoodCategory {
+  BURGER
+  PIZZA
+  DRINK
+  DESSERT
+  PASTA
+  FRIES
+  OTHERS
+}

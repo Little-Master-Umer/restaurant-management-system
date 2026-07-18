@@ -1,0 +1,12 @@
+whenever i call verify token the error handling should be like this
+
+This means whoever calls verify() can handle it:
+
+try {
+    const payload = verify(token);
+} catch (err) {
+    return NextResponse.json(
+        { message: "Unauthorized" },
+        { status: 401 }
+    );
+}
