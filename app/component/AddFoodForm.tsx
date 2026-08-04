@@ -1,145 +1,124 @@
 "use client";
-import { ReactElement, useState } from "react";
 
-export default function AddFoodForm() {
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
+type AddFoodFormProps = {
+  onClose: () => void;
+  onSuccess?: () => void;
+};
 
-    // const [name,setname]=useState("");
-    // const [description,setdescription]=useState("");
-    // const [price,setprice]=useState("");
-    // const [category,setcategory]=useState("");
-    const [image,setimage]=useState<File|null>(null);
-    //const [available,setavailable]=useState(true);
-    const [loading, setLoading]=useState(false);
-    
-    const [error,seterror]=useState({
-      name:"",
-      description:"",
-      price:"",
-      category:"",
-      isAvailable:true,
-    });
-    const [globalerror,setGlobalerror]=useState("");
+export default function AddFoodForm({ onClose, onSuccess }: AddFoodFormProps) {
+  const router = useRouter();
+  const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [globalError, setGlobalError] = useState("");
 
-    const [food,setFood]=useState({
-      name:"",
-      description:"",
-      price:"",
-      category:"",
-      isAvailable:true,
-    });
+  const [food, setFood] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    isAvailable: true,
+  });
 
-    const handleChange=(e:React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>)=>{
-      e.preventDefault;
-      const{name,value,type}=e.target;
-      
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
 
-      setFood((prev)=>({
-        ...prev,
-        [name]:
-               type==="checkbox"
-               
-               ?(e.target as HTMLInputElement ).checked: value,
-      }));
-      
-    };
-    //const [image, setImage] = useState<File | null>(null);
+    setFood((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
 
-    const handleImageChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setimage(e.target.files?.[0] ?? null);
-    };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImage(e.target.files?.[0] ?? null);
+  };
 
-    const handleSubmit=async(
-      e:React.FormEvent<HTMLFormElement>
-    )=>{
-      try{
-        
-        e.preventDefault;
-        setGlobalerror("");
-        const formdata=new FormData();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setGlobalError("");
 
-        formdata.append("name",food.name);
-        formdata.append("description",food.description);
-        formdata.append("price",food.price);
-        formdata.append("category",food.category);
-        if(image){
-         formdata.append("image",image);
-        }
+    try {
+      const formData = new FormData();
+      formData.append("name", food.name);
+      formData.append("description", food.description);
+      formData.append("price", food.price);
+      formData.append("category", food.category);
+      formData.append("isAvailable", String(food.isAvailable));
 
-        const res=await fetch("api/dashboard/addfood",{
-          method:"POST",
-          body:formdata
-        });
-        const data=await res.json();
-        if(!data.success){
-          setGlobalerror(data);
-        }
-        onClose(); 
-
-      }catch(e){
-        if (e instanceof Error) {
-          setGlobalerror(e.message);
-        } else {
-          setGlobalerror("Something went wrong.");
-        }
-      }finally{
-        setLoading(false);
+      if (image) {
+        formData.append("image", image);
       }
-      
+
+      const res = await fetch("/api/dashboard/addfood", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setGlobalError(data.message || "Unable to add food item.");
+        return;
+      }
+
+      onSuccess?.();
+      onClose();
+      router.refresh();
+    } catch (error) {
+      if (error instanceof Error) {
+        setGlobalError(error.message);
+      } else {
+        setGlobalError("Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
     }
-
-
+  };
 
   return (
-    <form className="mx-auto w-full max-w-2xl rounded-2xl bg-white p-6 shadow-lg space-y-5"
-    onSubmit={handleSubmit}>
+    <form
+      className="mx-auto w-full max-w-2xl space-y-5 rounded-2xl bg-white p-6 shadow-lg"
+      onSubmit={handleSubmit}
+    >
+      <h2 className="text-2xl font-bold text-gray-800">Add Food Item</h2>
+      {globalError ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+          {globalError}
+        </p>
+      ) : null}
 
-      <h2 className="text-2xl font-bold text-gray-800">
-        Add Food Item
-      </h2>
-      <h2 className="text-2sl font-bold text-red-800">
-        {globalerror}
-      </h2>
-
-      {/* Food Name */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Food Name
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Food Name</label>
         <input
           type="text"
           name="name"
           value={food.name}
           onChange={handleChange}
           placeholder="Chicken Burger"
-          className="w-full rounded-lg text-gray-700 border border-gray-300 px-4 py-2 outline-none focus:border-[#b5232a]"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 outline-none focus:border-[#b5232a]"
           required
         />
       </div>
 
-      {/* Description */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Description
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Description</label>
         <textarea
           name="description"
           value={food.description}
           onChange={handleChange}
           rows={4}
           placeholder="Enter food description..."
-          className="w-full rounded-lg text-gray-700 border border-gray-300 px-4 py-2 outline-none focus:border-[#b5232a]"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 outline-none focus:border-[#b5232a]"
           required
         />
       </div>
 
-      {/* Price */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Price
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
         <input
           type="number"
           name="price"
@@ -147,20 +126,17 @@ export default function AddFoodForm() {
           onChange={handleChange}
           step="0.01"
           placeholder="799.99"
-          className="w-full rounded-lg border text-gray-700 border-gray-300 px-4 py-2 outline-none focus:border-[#b5232a]"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 outline-none focus:border-[#b5232a]"
           required
         />
       </div>
 
-      {/* Category */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Category
-        </label>
-        
+        <label className="mb-2 block text-sm font-medium text-gray-700">Category</label>
+
         <select
           name="category"
-          className="w-full rounded-lg border text-gray-700 border-gray-300 px-4 py-2 outline-none focus:border-[#b5232a]"
+          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-700 outline-none focus:border-[#b5232a]"
           value={food.category}
           onChange={handleChange}
           required
@@ -176,11 +152,8 @@ export default function AddFoodForm() {
         </select>
       </div>
 
-      {/* Image */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Food Image
-        </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">Food Image</label>
 
         <input
           type="file"
@@ -191,7 +164,6 @@ export default function AddFoodForm() {
         />
       </div>
 
-      {/* Availability */}
       <div className="flex items-center gap-3">
         <input
           type="checkbox"
@@ -199,25 +171,19 @@ export default function AddFoodForm() {
           checked={food.isAvailable}
           onChange={handleChange}
           name="isAvailable"
-          //defaultChecked
           className="h-5 w-5 accent-[#b5232a]"
-          required
         />
 
-        <label
-          htmlFor="isAvailable"
-          className="text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700">
           Available
         </label>
       </div>
 
-      {/* Buttons */}
       <div className="flex justify-end gap-4 pt-4">
-
         <button
           type="button"
-          className="rounded-lg text-gray-700 border border-gray-300 px-5 py-2 font-medium hover:bg-gray-100"
+          onClick={onClose}
+          className="rounded-lg border border-gray-300 px-5 py-2 font-medium text-gray-700 hover:bg-gray-100"
         >
           Cancel
         </button>
@@ -229,9 +195,7 @@ export default function AddFoodForm() {
         >
           {loading ? "Adding..." : "Add Food"}
         </button>
-
       </div>
-
     </form>
   );
 }

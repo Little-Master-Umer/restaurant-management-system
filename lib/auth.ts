@@ -7,9 +7,6 @@ import { genToken, verify } from "./jwt";
 
 import { login } from "./validation";
 
-import { NextResponse } from "next/server";
-
-
 const cookieName ="restaurnt_token";
 
 export async function hashPass(password:string):Promise<string>{
@@ -131,11 +128,8 @@ export async function getAdmin(){
 
     try{
         payload=verify(token);
-    }catch(err){
-        return NextResponse.json(
-            { message: "Unauthorized" },
-            { status: 401 }
-        );
+    }catch{
+        return null;
     }
 
     return prisma.user.findUnique({
