@@ -58,7 +58,6 @@ export default function OrdersOverviewChart() {
           console.log(res.data);
         } catch (error) {
           setGlobalError("error happenend");
-          
         }
         
       }

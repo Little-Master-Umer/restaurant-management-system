@@ -1,6 +1,11 @@
+"use client";
 import { Plus, ChefHat } from "lucide-react";
-
+import { useState } from "react";
+import AddFoodForm from "./AddFoodForm";
 export default function AddNewFoodCard() {
+
+  const [showForm,setShowForm]=useState(false);
+  //const [showAddFood, setShowAddFood] = useState(false);
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
       <div className="mb-4 flex items-center justify-between">
@@ -24,11 +29,16 @@ export default function AddNewFoodCard() {
         <button
           type="button"
           className="flex items-center gap-1.5 rounded-xl bg-[#b5232a] px-5 py-2.5 text-[13px] font-semibold text-white"
+          onClick={()=>setShowForm(true)}
         >
           <Plus size={15} />
           Add Food Item
         </button>
+
       </div>
+      {showForm&&<AddFoodForm
+        onClose={() => setShowForm(false)}
+        />}
     </div>
   );
 }
