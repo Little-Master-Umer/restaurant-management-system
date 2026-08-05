@@ -16,12 +16,12 @@ export async function GET(req:NextRequest){
     // console.log(startTomorrow );
     try {
         const totalorders=await prisma.order.count({
-            where:{
-                createdAt:{
-                    gte:startDay,
-                    lte:startTomorrow ,
-                },
-            },
+            // where:{
+            //     createdAt:{
+            //         gte:startDay,
+            //         lte:startTomorrow ,
+            //     },
+            // },
         });
 
         //console.log(totalorders);
@@ -29,43 +29,47 @@ export async function GET(req:NextRequest){
         const pendingor=await prisma.order.count({
             where:{
                 status:"PENDING",
-                createdAt:{
-                    gte:startDay,
-                    lte:startTomorrow ,
-                },
+                // createdAt:{
+                //     gte:startDay,
+                //     lte:startTomorrow ,
+                // },
             },
         });
 
         const deliveredor=await prisma.order.count({
             where:{
                 status:"DELIVERED",
-                createdAt:{
-                    gte:startDay,
-                    lte:startTomorrow ,
-                },
+                // createdAt:{
+                //     gte:startDay,
+                //     lte:startTomorrow ,
+                // },
             },
         });
 
         const cancelledor=await prisma.order.count({
             where:{
              status:"CANCELLED",
-                createdAt:{
-                    gte:startDay,
-                    lte:startTomorrow ,
-                },
+                // createdAt:{
+                //     gte:startDay,
+                //     lte:startTomorrow ,
+                // },
             },
         });
 
        const revenue=await prisma.order.aggregate({
             where:{
-                createdAt:{
-                    gte:startDay,
-                    lte:startTomorrow ,
-                }
-                },_sum:{
+                status:{
+                    not: "CANCELLED",
+                },
+                // createdAt:{
+                //     gte:startDay,
+                //     lte:startTomorrow ,
+                // }
+
+            },_sum:{
                     total:true,
                 },
-            });
+        });
 
         const totalRevenue=revenue._sum.total??0;
 

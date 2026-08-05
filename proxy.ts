@@ -1,5 +1,5 @@
 import { NextResponse,NextRequest } from "next/server";
-import { verify } from "./lib/jwt";
+import { verify, decodetoken } from "./lib/jwt";
 
 export async function proxy(request:NextRequest){
     const token= request.cookies.get("restaurnt_token")?.value;
@@ -9,6 +9,20 @@ export async function proxy(request:NextRequest){
     }
 
     try {
+        // quick client-side expiry check using token `exp` claim
+        const decoded:any = decodetoken(token);
+        const now = Math.floor(Date.now()/1000);
+        if(decoded && typeof decoded.exp === 'number' && decoded.exp <= now){
+            if (request.nextUrl.pathname.startsWith("/api/")) {
+                const res = NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+                res.cookies.delete("restaurnt_token");
+                return res;
+            }
+            const res = NextResponse.redirect(new URL("/login", request.url));
+            res.cookies.delete("restaurnt_token");
+            return res;
+        }
+
         const payload = verify(token);
         if (payload.role !== "ADMIN") {
             return NextResponse.redirect(new URL("/login", request.url));
@@ -26,6 +40,7 @@ export async function proxy(request:NextRequest){
 export const config={
     matcher:[
         "/dashboard/:path*",
-        "/api/admin/:path*"
+       "/api/admin/:path*",
+        "/api/dashboard/:path*"
     ]
 }

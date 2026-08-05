@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { FoodCategory  } from "@prisma/client";
 
 const ARRIVALS = [
   {
@@ -30,6 +31,17 @@ const ARRIVALS = [
     time: "Just now",
   },
 ];
+export type newFood={
+  id:string,
+  food:string,
+  price:number,
+  description:string,
+  category:FoodCategory ,
+  image:string,
+}
+
+
+
 
 function ArrivalCard({ id, customer, items, amount, time }) {
   return (
