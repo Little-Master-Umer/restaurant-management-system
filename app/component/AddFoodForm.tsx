@@ -67,7 +67,7 @@ export default function AddFoodForm({ onClose, onSuccess }: AddFoodFormProps) {
 
       onSuccess?.();
       onClose();
-      router.refresh();
+     // router.refresh();
     } catch (error) {
       if (error instanceof Error) {
         setGlobalError(error.message);

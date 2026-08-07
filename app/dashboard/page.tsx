@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 export default function Dashboard() {
   const router = useRouter();
   const [globalError, setglobalError]=useState("");
+  const [foodRefresh, setFoodRefresh] = useState(6);
     const [val,setValue]=useState("");
     const [dashsta,setDashsta]=useState({
       total:0,
@@ -81,6 +82,10 @@ export default function Dashboard() {
       return ()=>{ if(timer) clearTimeout(timer); }
     },[router]);
 
+    const handleFoodAdded = () => {
+     setFoodRefresh((prev) => prev + 1);
+    };
+    
 
   
 
@@ -103,12 +108,12 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.6fr_1fr]">
             <RecentOrdersTable />
             <div className="flex flex-col gap-6">
-              <AddNewFoodCard />
+              <AddNewFoodCard onFoodAdded={handleFoodAdded} refresh={foodRefresh} />
               <TopSellingItems />
             </div>
           </div>
 
-          <RecentArrivals />
+          <RecentArrivals  refresh={foodRefresh}/>
         </main>
       </div>
     </div>

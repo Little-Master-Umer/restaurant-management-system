@@ -1,6 +1,55 @@
 import { Menu, Search, Bell, ChevronDown } from "lucide-react";
-
+import { useEffect, useState } from "react";
 export default function Topbar() {
+
+  const [search,setSearch]=useState<string>("");
+
+  const handleSearch=(e:React.ChangeEvent<HTMLInputElement>)=>{
+    setSearch(e.target.value);
+    //alert(search);
+  };
+
+  const createSearchUrl=(search:string)=>{
+    const params=new URLSearchParams();
+
+    if(search.trim()){
+      params.set("q",search.trim())
+    }
+
+    return `/api/dashboard/search?${params.toString()}`;
+  }
+
+  async function doSearch(search:string){
+    try{
+      const url=createSearchUrl(search)
+      const res=await fetch(url);
+      // if (!res.ok) {
+      //     throw new Error("Failed to fetch search results");
+      // }
+      const data = await res.json();
+      return data;
+    }catch(error){
+      console.error("Search error:", error);
+    }
+    
+  }
+  useEffect(()=>{
+    if(!search.trim()){
+      return;
+    }
+    const timer=setTimeout(()=>{
+      doSearch(search)
+
+    },500);
+
+    return()=>{
+      clearTimeout(timer);
+    };
+
+  },[search])
+
+
+  
   return (
     <header className="flex items-center justify-between border-b border-gray-100 bg-white px-8 py-5">
       <div className="flex items-center gap-4">
@@ -16,8 +65,9 @@ export default function Topbar() {
           />
           <input
             type="text"
-            readOnly
             placeholder="Search orders, customers, food..."
+            value={search}
+            onChange={handleSearch}
             className="w-72 rounded-full border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-[13px] text-gray-500 placeholder:text-gray-400 focus:outline-none"
           />
         </div>

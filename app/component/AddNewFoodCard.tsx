@@ -2,8 +2,17 @@
 import { Plus, ChefHat } from "lucide-react";
 import { useEffect, useState } from "react";
 import AddFoodForm from "./AddFoodForm";
+import RecentArrivals from "./RecentAddedFood";
+type AddFoodFormCardProps = {
+  onFoodAdded: () => void;
+  refresh: number;
+};
 
-export default function AddNewFoodCard() {
+export default function AddFoodFormCard({
+  onFoodAdded,
+  refresh,
+}: AddFoodFormCardProps) {
+//export default function AddNewFoodCard() {
   const [showForm, setShowForm] = useState(false);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
 
@@ -30,7 +39,7 @@ export default function AddNewFoodCard() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refresh]);
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
@@ -69,9 +78,10 @@ export default function AddNewFoodCard() {
       {showForm && (
         <AddFoodForm
           onClose={() => setShowForm(false)}
-          onSuccess={() => setAvailableCount((prev) => (prev === null ? 1 : prev + 1))}
+          onSuccess={onFoodAdded}
         />
       )}
+      
     </div>
   );
 }
